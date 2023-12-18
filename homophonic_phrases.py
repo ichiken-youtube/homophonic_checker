@@ -1,8 +1,9 @@
-import pykakasi
+from pykakasi import kakasi
 from janome.tokenizer import Tokenizer
 import re
 from pprint import pprint
 import sys
+import os
 
 
 def read_text_file(filename):
@@ -28,15 +29,17 @@ def extract_jukugo(text):
     # JanomeのTokenizerを初期化
     tokenizer = Tokenizer()
 
-    jukugo_list = []  # 熟語を格納するリスト
+    jukugo_List = []  # 熟語を格納するリスト
 
     # テキストを形態素解析し、名詞や動詞などの熟語を抽出
     for token in tokenizer.tokenize(text):
         # 名詞や動詞などの熟語を抽出
         if token.part_of_speech.split(',')[0] in ["名詞", "動詞", "形容詞", "副詞"]:
-            jukugo_list.append(token.surface)
+            jukugo_List.append(token.surface)
+            print(str(token.surface) + str(token.part_of_speech.split(',')))
+            #jukugo_Dict[token.surface] = token.part_of_speech.split(',')[8] 
 
-    return jukugo_list
+    return jukugo_List
 
 def remove_duplicates(input_list):
     unique_list = []
@@ -52,17 +55,21 @@ def remove_duplicates(input_list):
 def remove_numeric_elements(input_list):
     return [element for element in input_list if not element.isdigit()]
 
-def convert_kanji_to_reading(kanji_list):
+def convert_kanji_to_reading(word_list):
     # Kakasiオブジェクトを作成
-    kakasi = pykakasi.kakasi()
-    kakasi.setMode("J", "H")  # 漢字をひらがなに変換するモード
+    kks = kakasi()
+    #kakasi.setMode("J", "H")  # 漢字をひらがなに変換するモード
 
     result_dict = {}  # 辞書を初期化
 
     # リスト内の漢字文字列を読みに変換し、辞書に追加
-    for kanji in kanji_list:
-        reading = kakasi.getConverter().do(kanji)
-        result_dict[kanji] = reading
+    for kanjis in word_list:
+        #print(kanjis)
+        conv = kks.convert(kanjis)
+        for kanji in conv:
+            #reading = kakasi.getConverter().do(kanji)
+            #print(kanji)
+            result_dict[kanji['orig']] = kanji['hira']
 
     return result_dict
 
@@ -84,20 +91,30 @@ def find_duplicate_readings(dictionary):
 # Listing homophonic phrases in the subtitles
 if __name__ == "__main__":
     # コマンドライン引数から渡されたファイルのパスを取得
-    print(sys.argv)
     if len(sys.argv) == 2:
         file_path = sys.argv[1]
         print(f"渡されたファイルのパス: {file_path}")
     else:
         print("エラー: ファイルのパスを正しく渡してください。")
+        exit(1)
+
+    if os.path.isfile(file_path):
+        pass
+    else:
+        print(f"{file_path} は存在しません。")
+        exit(1)
+
     #srt_filename = "your_srt_file.srt"  # 自分のSRTファイルのパスを指定
-    srt_text = read_text_file('Japanese.srt')
-    print(srt_text)
+    srt_text = read_text_file(file_path)
+    #print(srt_text)
+    print('--------------------日本語形態素解析--------------------')
     jukugo_d = extract_jukugo(srt_text)
-    print(jukugo_d)
-    jukugo = remove_numeric_elements(remove_duplicates(jukugo_d))
-    print(jukugo)
+    #print(jukugo_d)
+    jukugo = remove_duplicates(remove_numeric_elements(jukugo_d))
+    #print(jukugo)
+    print('--------------------読み解析中--------------------')
     yomiDict = convert_kanji_to_reading(jukugo)
-    print(yomiDict)
+    #print(yomiDict)
     dpReadings = find_duplicate_readings(yomiDict)
+    print('--------------------同音異義語が発見されました。--------------------')
     pprint(dpReadings)
