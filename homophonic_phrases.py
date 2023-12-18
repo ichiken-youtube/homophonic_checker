@@ -37,7 +37,6 @@ def extract_jukugo(text):
         if token.part_of_speech.split(',')[0] in ["名詞", "動詞", "形容詞", "副詞"]:
             jukugo_List.append(token.surface)
             print(str(token.surface) + str(token.part_of_speech.split(',')))
-            #jukugo_Dict[token.surface] = token.part_of_speech.split(',')[8] 
 
     return jukugo_List
 
@@ -58,7 +57,6 @@ def remove_numeric_elements(input_list):
 def convert_kanji_to_reading(word_list):
     # Kakasiオブジェクトを作成
     kks = kakasi()
-    #kakasi.setMode("J", "H")  # 漢字をひらがなに変換するモード
 
     result_dict = {}  # 辞書を初期化
 
@@ -67,7 +65,6 @@ def convert_kanji_to_reading(word_list):
         #print(kanjis)
         conv = kks.convert(kanjis)
         for kanji in conv:
-            #reading = kakasi.getConverter().do(kanji)
             #print(kanji)
             result_dict[kanji['orig']] = kanji['hira']
 
@@ -104,7 +101,6 @@ if __name__ == "__main__":
         print(f"{file_path} は存在しません。")
         exit(1)
 
-    #srt_filename = "your_srt_file.srt"  # 自分のSRTファイルのパスを指定
     srt_text = read_text_file(file_path)
     #print(srt_text)
     print('--------------------日本語形態素解析--------------------')
