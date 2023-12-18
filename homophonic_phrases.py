@@ -1,6 +1,5 @@
 from pykakasi import kakasi
 from janome.tokenizer import Tokenizer
-import re
 from pprint import pprint
 import sys
 import os
