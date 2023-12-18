@@ -84,6 +84,7 @@ def find_duplicate_readings(dictionary):
 # Listing homophonic phrases in the subtitles
 if __name__ == "__main__":
     # コマンドライン引数から渡されたファイルのパスを取得
+    print(sys.argv)
     if len(sys.argv) == 2:
         file_path = sys.argv[1]
         print(f"渡されたファイルのパス: {file_path}")
