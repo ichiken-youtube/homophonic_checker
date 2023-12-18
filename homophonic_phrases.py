@@ -3,6 +3,7 @@ from janome.tokenizer import Tokenizer
 from pprint import pprint
 import sys
 import os
+import re
 
 
 def read_text_file(filename):
@@ -74,7 +75,8 @@ def convert_kanji_to_reading(word_list):
         conv = kks.convert(kanjis)
         for kanji in conv:
             #print(kanji)
-            result_dict[kanji['orig']] = kanji['hira']
+            if(not is_hiragana(kanji['orig'])):
+                result_dict[kanji['orig']] = kanji['hira']
 
     return result_dict
 
@@ -104,6 +106,9 @@ def dispYomi(srt_text, dpReadings):
                 if kanji in line:
                     print('  '+str(line_num+1)+' '+str(line))
 
+def is_hiragana(input_str):
+    # 正規表現を使用して、文字列がすべてひらがなで構成されているかチェック
+    return bool(re.match(r'^[ぁ-んー]*$', input_str))
 
 # Listing homophonic phrases in the subtitles
 if __name__ == "__main__":
@@ -131,7 +136,8 @@ if __name__ == "__main__":
     #print(jukugo)
     print('--------------------読み解析中--------------------')
     yomiDict = convert_kanji_to_reading(jukugo)
-    #print(yomiDict)
+    print(yomiDict)
+
     dpReadings = find_duplicate_readings(yomiDict)
     print('--------------------同音異義語が発見されました。--------------------')
     dispYomi(srt_text,dpReadings)
