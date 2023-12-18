@@ -14,8 +14,8 @@ def read_text_file(filename):
         # '-->'が含まれる行と空白行を除外してテキストを結合
         cleaned_text = ''
         for line in lines:
-            if not line.strip() or '-->' in line:
-                continue
+            #if not line.strip() or '-->' in line:
+            #    continue
             cleaned_text += line
 
         return cleaned_text
@@ -24,6 +24,15 @@ def read_text_file(filename):
     except Exception as e:
         return f"ファイルの読み込み中にエラーが発生しました: {str(e)}"
     
+def remove_timecord(text):
+    result = ''
+    for line in text.splitlines():
+        if not line.strip() or '-->' in line:
+            continue
+        result += line
+
+    return result
+
 
 def extract_jukugo(text):
     # JanomeのTokenizerを初期化
@@ -85,6 +94,18 @@ def find_duplicate_readings(dictionary):
 
     return duplicates
 
+def dispYomi(srt_text, dpReadings):
+
+    for yomi in dpReadings.keys():
+        print('\n□'+str(yomi))
+        for kanji in dpReadings[yomi]:
+            print('┗'+str(kanji))
+            for line_num,line in enumerate(srt_text.splitlines()):
+                #print(line)
+                if kanji in line:
+                    print('  '+str(line_num+1)+' '+str(line))
+
+
 # Listing homophonic phrases in the subtitles
 if __name__ == "__main__":
     # コマンドライン引数から渡されたファイルのパスを取得
@@ -102,9 +123,10 @@ if __name__ == "__main__":
         exit(1)
 
     srt_text = read_text_file(file_path)
+    text = remove_timecord(srt_text)
     #print(srt_text)
     print('--------------------日本語形態素解析--------------------')
-    jukugo_d = extract_jukugo(srt_text)
+    jukugo_d = extract_jukugo(text)
     #print(jukugo_d)
     jukugo = remove_duplicates(remove_numeric_elements(jukugo_d))
     #print(jukugo)
@@ -113,4 +135,4 @@ if __name__ == "__main__":
     #print(yomiDict)
     dpReadings = find_duplicate_readings(yomiDict)
     print('--------------------同音異義語が発見されました。--------------------')
-    pprint(dpReadings)
+    dispYomi(srt_text,dpReadings)
