@@ -16,8 +16,8 @@ def read_text_file(filename):
         # '-->'が含まれる行と空白行を除外してテキストを結合
         cleaned_text = ''
         for line in lines:
-            if not line.strip() or '-->' in line:
-                continue
+            '''if not line.strip() or '-->' in line:
+                continue'''
             cleaned_text += line
 
         return cleaned_text
@@ -49,7 +49,7 @@ def extract_jukugo(text):
         print(token)
         if token.part_of_speech.split(',')[0] in ["名詞", "動詞", "形容詞", "副詞"]:
             #jukugoDict.append(token.surface)
-            if token.reading == '*':
+            if token.reading == '*'and '数' != token.part_of_speech.split(',')[1]:
                 continue
             #jukugoDict[token.surface] = token.reading
             jukugoList.append(token)
@@ -104,13 +104,11 @@ def find_duplicate_readings(tokens):
 
     return duplicates
 
-#text1の長さで規格化した編集距離
-#text1かtext2の文字数が０の場合はデフォルト値（基本的には長めの値）を返す。
-def get_relative_ed(text1, text2, default=2):
-  if len(text1) == 0: return default
-  if len(text2) == 0: return default
-  dist = Levenshtein.distance(text1, text2)
-  return dist
+def get_relative_ed(text1, text2):
+    if len(text1) == 0 or len(text2) == 0:
+        return 999
+    dist = Levenshtein.distance(text1, text2)
+    return dist/len(text1)
 
 def create_key(token):
     return f"{token.reading}_{token.part_of_speech.split(',')[0]}_{token.part_of_speech.split(',')[1]}"
@@ -129,7 +127,7 @@ def find_similar_words(token_list):
             if i < j:
                 ed = get_relative_ed(token1.reading, token2.reading)
                 #品詞や編集距離が近い条件に合致
-                if (ed <= 1 and token1.part_of_speech.split(',')[0] == token2.part_of_speech.split(',')[0] 
+                if (ed <= 0.3 and token1.part_of_speech.split(',')[0] == token2.part_of_speech.split(',')[0] 
                     and token1.part_of_speech.split(',')[1] == token2.part_of_speech.split(',')[1]):
 #                    and token2.surface not in similar_words[key]
                     for sw in similar_words[key]:
@@ -147,19 +145,42 @@ def find_similar_words(token_list):
     return dict(similar_words)
 
 
-def dispYomi(srt_text, dpReadings):
+def dispYomi(srt_text,token_list, dpReadings):
 
     for yomi in dpReadings.keys():
-        if len(dpReadings[yomi])<2:
-            continue
 
         print('\n■'+str(yomi))
         for kanji in dpReadings[yomi]:
             print('┗'+kanji.surface)
-            for line_num,line in enumerate(srt_text.splitlines()):
+            last_num = 0
+            for token in token_list:
                 #print(line)
-                if kanji.surface in line:
-                    print('  '+str(line_num+1)+' '+str(line)) 
+                #print(token.surface,token.part_of_speech.split(','))
+                if '数' == token.part_of_speech.split(',')[1]:
+                    last_num = token.surface
+                    #print(last_num)
+                if (kanji.surface == token.surface 
+                    and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
+                    and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
+                    print(last_num,end=', ')
+                    index,line=find_matching_line(srt_text,last_num,kanji.surface)
+                    print(index,end=', ')
+                    print(line)
+
+
+def find_matching_line(text, textBlockNum, query):
+    lines = text.split('\n')  # 文字列を行ごとに分割
+
+    x_found = False  # x に一致する行が見つかったかどうかを追跡するフラグ
+
+    for i,line in enumerate(lines):
+        if x_found:
+            if query in line:
+                return i+1,line  # x に一致する行の後で、A を含む行を見つけた場合、その行を返す
+        if str(textBlockNum) == line:
+            x_found = True  # x に一致する行が見つかったらフラグをセット
+    
+    return -1,''  # 一致箇所が見つからない場合は -1 を返す
 
 def is_hiragana(input_str):
     # 正規表現を使用して、文字列がすべてひらがなで構成されているかチェック
@@ -183,18 +204,15 @@ if __name__ == "__main__":
 
     srt_text = read_text_file(file_path)
     text = remove_timecord(srt_text)
-    #print(srt_text)
-    print('--------------------日本語形態素解析--------------------')
+     #print(srt_text)
+    print('-----------------------日本語形態素解析-----------------------')
     jukugoTList = extract_jukugo(text)
-    #pprint(jukugoTList)
-    #jukugo = remove_duplicates(remove_numeric_elements(jukugo_d))
-    #print(jukugo)
-    print('--------------------読み解析中--------------------')
-    #yomiDict = convert_kanji_to_reading(jukugo)
-    #print(yomiDict)
-    #pprint(jukugoTList)
-    #dpReadings = find_duplicate_readings(jukugoTList)
+    print('--------------------------読み解析中--------------------------')
     dpReadings = find_similar_words(jukugoTList)
-    print('--------------------同音異義語が発見されました。--------------------')
+    print('\n\n---同音異義語、あるいはタイプミスと思われる語句が発見されました---')
     #pprint(dpReadings)
-    dispYomi(srt_text,dpReadings)
+    dispYomi(srt_text,jukugoTList,dpReadings)
+
+    print('\n--------------------------------------------------------------')
+    print('{字幕ブロック番号}, {行数}, {行の内容}\nのフォーマットで表示しています。')
+
