@@ -1,4 +1,3 @@
-from pykakasi import kakasi
 from janome.tokenizer import Tokenizer
 from pprint import pprint
 import Levenshtein
@@ -58,52 +57,6 @@ def extract_jukugo(text):
 
     return jukugoList#jukugoDict
 
-def remove_duplicates(input_list):
-    unique_list = []
-    seen_elements = set()
-
-    for element in input_list:
-        if element not in seen_elements:
-            seen_elements.add(element)
-            unique_list.append(element)
-
-    return unique_list
-
-def remove_numeric_elements(input_list):
-    return [element for element in input_list if not element.isdigit()]
-
-def convert_kanji_to_reading(word_list):
-    # Kakasiオブジェクトを作成
-    kks = kakasi()
-
-    result_dict = {}  # 辞書を初期化
-
-    # リスト内の漢字文字列を読みに変換し、辞書に追加
-    for kanjis in word_list:
-        #print(kanjis)
-        conv = kks.convert(kanjis)
-        for kanji in conv:
-            #print(kanji)
-            if(not is_hiragana(kanji['orig'])):
-                result_dict[kanji['orig']] = kanji['hira']
-
-    return result_dict
-
-def find_duplicate_readings(tokens):
-    duplicates = {}  # 重複した読みを持つエントリを格納する辞書
-
-    for token in tokens:
-        kanji = token.surface
-        reading = token.reading + ',' + token.part_of_speech.split(',')[0] + ',' + token.part_of_speech.split(',')[1]
-        if reading in duplicates:
-            # 重複した読みが見つかった場合
-            if kanji not in duplicates[reading]:
-                duplicates[reading].append(kanji)
-        else:
-            duplicates[reading] = [kanji]
-
-    return duplicates
-
 def get_relative_ed(text1, text2):
     if len(text1) == 0 or len(text2) == 0:
         return 999
@@ -127,7 +80,7 @@ def find_similar_words(token_list):
             if i < j:
                 ed = get_relative_ed(token1.reading, token2.reading)
                 #品詞や編集距離が近い条件に合致
-                if (ed <= 0.3 and token1.part_of_speech.split(',')[0] == token2.part_of_speech.split(',')[0] 
+                if (ed <= settings.ERROR_MARGIN and token1.part_of_speech.split(',')[0] == token2.part_of_speech.split(',')[0] 
                     and token1.part_of_speech.split(',')[1] == token2.part_of_speech.split(',')[1]):
 #                    and token2.surface not in similar_words[key]
                     for sw in similar_words[key]:
@@ -214,5 +167,7 @@ if __name__ == "__main__":
     dispYomi(srt_text,jukugoTList,dpReadings)
 
     print('\n--------------------------------------------------------------')
-    print('{字幕ブロック番号}, {行数}, {行の内容}\nのフォーマットで表示しています。')
+    print('■{読み}_{品詞}_{品詞細分類}')
+    print('┗{字幕ファイル内での用法}')
+    print('{字幕ブロック番号}, {行数}, {行の内容}\n\nのフォーマットで表示しています。')
 
