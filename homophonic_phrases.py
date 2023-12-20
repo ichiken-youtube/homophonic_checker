@@ -5,7 +5,12 @@ from collections import defaultdict
 import sys
 import os
 import re
+import shutil
 
+if not os.path.isfile('settings.py'):
+    shutil.copy('_settings.py', 'settings.py')
+    
+import settings
 
 def read_text_file(filename):
     try:
