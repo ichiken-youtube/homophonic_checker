@@ -45,20 +45,15 @@ def extract_jukugo(text):
     tokenizer = Tokenizer()
 
     jukugoList = []  # 熟語を格納するリスト
-    #jukugoDict = {}
 
     # テキストを形態素解析し、名詞や動詞などの熟語を抽出
     for token in tokenizer.tokenize(text):
         # 名詞や動詞などの熟語を抽出
         print(token)
         if token.part_of_speech.split(',')[0] in ["名詞", "動詞", "形容詞", "副詞"]:
-            #jukugoDict.append(token.surface)
             if token.reading == '*'and '数' != token.part_of_speech.split(',')[1]:
                 continue
-            #jukugoDict[token.surface] = token.reading
-            jukugoList.append(token)
-            #print(str(token.surface) + str(token.part_of_speech.split(',')))
-            
+            jukugoList.append(token)            
 
     return jukugoList#jukugoDict
 
@@ -87,12 +82,10 @@ def find_similar_words(token_list):
                 #品詞や編集距離が近い条件に合致
                 if (ed <= settings.ERROR_MARGIN and token1.part_of_speech.split(',')[0] == token2.part_of_speech.split(',')[0] 
                     and token1.part_of_speech.split(',')[1] == token2.part_of_speech.split(',')[1]):
-#                    and token2.surface not in similar_words[key]
                     for sw in similar_words[key]:
                         if sw.surface == token2.surface:
                             break
                     else:
-                        #print(token2.surface)
                         similar_words[key].append(token2)
                     continue
 
@@ -112,11 +105,8 @@ def dispYomi(srt_text,token_list, dpReadings):
             print('┗'+kanji.surface)
             last_num = 0
             for token in token_list:
-                #print(line)
-                #print(token.surface,token.part_of_speech.split(','))
                 if '数' == token.part_of_speech.split(',')[1]:
                     last_num = token.surface
-                    #print(last_num)
                 if (kanji.surface == token.surface 
                     and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
                     and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
@@ -144,7 +134,6 @@ def is_hiragana(input_str):
     # 正規表現を使用して、文字列がすべてひらがなで構成されているかチェック
     return bool(re.match(r'^[ぁ-んー]*$', input_str))
 
-# Listing homophonic phrases in the subtitles
 if __name__ == "__main__":
     # コマンドライン引数から渡されたファイルのパスを取得
     if len(sys.argv) == 2:
@@ -162,17 +151,15 @@ if __name__ == "__main__":
 
     srt_text = read_text_file(file_path)
     text = remove_timecord(srt_text)
-     #print(srt_text)
     print('-----------------------日本語形態素解析-----------------------')
     jukugoTList = extract_jukugo(text)
     print('--------------------------読み解析中--------------------------')
     dpReadings = find_similar_words(jukugoTList)
     print('\n\n---同音異義語、あるいはタイプミスと思われる語句が発見されました---')
-    #pprint(dpReadings)
     dispYomi(srt_text,jukugoTList,dpReadings)
 
     print('\n--------------------------------------------------------------')
     print('■{読み}_{品詞}_{品詞細分類}')
     print('┗{字幕ファイル内での用法}')
-    print('{字幕ブロック番号}, {行数}, {行の内容}\n\nのフォーマットで表示しています。')
+    print('{字幕ブロック番号}, {行数}, {行の内容}\nのフォーマットで表示しています。')
 
