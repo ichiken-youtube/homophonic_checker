@@ -110,9 +110,9 @@ def dispYomi(srt_text,token_list, dpReadings):
                 if (kanji.surface == token.surface 
                     and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
                     and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
-                    print('    ',last_num,end='\t')
+                    print(('        '+str(last_num))[-8:],end='\t')
                     index,line=find_matching_line(srt_text,last_num,kanji.surface)
-                    print(index,end='\t')
+                    print(('        '+str(index))[-6:] ,end='\t')
                     print(line)
 
 
