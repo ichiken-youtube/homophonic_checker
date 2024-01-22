@@ -35,7 +35,7 @@ def remove_timecord(text):
     for line in text.splitlines():
         if not line.strip() or '-->' in line:
             continue
-        result += line
+        result = result + '\n' + line
 
     return result
 
