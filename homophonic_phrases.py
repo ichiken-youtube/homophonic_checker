@@ -110,12 +110,10 @@ def dispYomi(srt_text,token_list, dpReadings):
             print('┗'+kanji.surface)
             index = 0
             for token in token_list:
-                '''if '数' == token.part_of_speech.split(',')[1]:
-                    last_num = token.surface'''
                 if (kanji.surface == token.surface 
                     and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
                     and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
-                    block,index=find_matching_line(srt_text,index,kanji.surface)
+                    block,index=find_matching_line(srt_text,index,kanji.surface,dpReadings[yomi])
                     print(('        '+str(block))[-8:],end='\t')
                     print(('        '+str(index+1))[-6:] ,end='\t')
                     if index > -1 and index < len(lines):
@@ -124,11 +122,13 @@ def dispYomi(srt_text,token_list, dpReadings):
                         print('')
 
 
-def find_matching_line(text,target_index, query):
+def find_matching_line(text,target_index, query, similar_words):
     lines = text.split('\n')  # 文字列を行ごとに分割
 
     before_target_index = True
     last_block=0
+
+
 
     for i,line in enumerate(lines):
         if before_target_index:
@@ -142,7 +142,16 @@ def find_matching_line(text,target_index, query):
                 if i + 1 < len(lines) and '-->' in lines[i + 1]:
                     last_block=int(line)
             if query in line:
-                return last_block,i
+                for kanji in similar_words:
+                    if kanji.surface in query:
+                        continue
+                    if kanji.surface in line and query != kanji.surface:
+                        break
+                else:
+                    return last_block,i
+                
+                continue
+                
 
     
     return -1,-1  # 一致箇所が見つからない場合は -1 を返す
