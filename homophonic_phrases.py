@@ -32,9 +32,13 @@ def read_text_file(filename):
     
 def remove_timecord(text):
     result = ''
-    for line in text.splitlines():
-        if not line.strip() or '-->' in line:
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if '-->' in line:
             continue
+        if line.isdigit():
+            if i + 1 < len(lines) and '-->' in lines[i + 1]:
+                continue
         result = result + '\n' + line
 
     return result
@@ -97,38 +101,60 @@ def find_similar_words(token_list):
 
 
 def dispYomi(srt_text,token_list, dpReadings):
+    lines = srt_text.split('\n')  # 文字列を行ごとに分割
 
     for yomi in dpReadings.keys():
 
         print('\n■'+str(yomi))
         for kanji in dpReadings[yomi]:
             print('┗'+kanji.surface)
-            last_num = 0
+            index = 0
             for token in token_list:
-                if '数' == token.part_of_speech.split(',')[1]:
-                    last_num = token.surface
                 if (kanji.surface == token.surface 
                     and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
                     and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
-                    print(('        '+str(last_num))[-8:],end='\t')
-                    index,line=find_matching_line(srt_text,last_num,kanji.surface)
-                    print(('        '+str(index))[-6:] ,end='\t')
-                    print(line)
+                    block,index=find_matching_line(srt_text,index,kanji.surface,dpReadings[yomi])
+                    print(('        '+str(block))[-8:],end='\t')
+                    print(('        '+str(index+1))[-6:] ,end='\t')
+                    if index > -1 and index < len(lines):
+                        print(lines[index])
+                    else:
+                        print('')
 
 
-def find_matching_line(text, textBlockNum, query):
+def find_matching_line(text,target_index, query, similar_words):
     lines = text.split('\n')  # 文字列を行ごとに分割
 
-    x_found = False  # x に一致する行が見つかったかどうかを追跡するフラグ
+    before_target_index = True
+    last_block=0
+
+
 
     for i,line in enumerate(lines):
-        if x_found:
+        if before_target_index:
+            if i >  target_index:
+                before_target_index = False
+            continue
+        else:
+            if '-->' in line:
+                continue
+            if line.isdigit():
+                if i + 1 < len(lines) and '-->' in lines[i + 1]:
+                    last_block=int(line)
             if query in line:
-                return i+1,line  # x に一致する行の後で、A を含む行を見つけた場合、その行を返す
-        if str(textBlockNum) == line:
-            x_found = True  # x に一致する行が見つかったらフラグをセット
+                for kanji in similar_words:
+                    if kanji.surface in query:
+                        continue
+                    if kanji.surface in line and query != kanji.surface:
+                        break
+                else:
+                    return last_block,i
+                
+                continue
+                
+
     
-    return -1,''  # 一致箇所が見つからない場合は -1 を返す
+    return -1,-1  # 一致箇所が見つからない場合は -1 を返す
 
 def is_hiragana(input_str):
     # 正規表現を使用して、文字列がすべてひらがなで構成されているかチェック
