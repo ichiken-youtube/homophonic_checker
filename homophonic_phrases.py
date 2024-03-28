@@ -53,11 +53,12 @@ def extract_jukugo(text):
     # テキストを形態素解析し、名詞や動詞などの熟語を抽出
     for token in tokenizer.tokenize(text):
         # 名詞や動詞などの熟語を抽出
-        print(token)
+        if settings.DEBUG:
+            print(token)
         if token.part_of_speech.split(',')[0] in ["名詞", "動詞", "形容詞", "副詞"]:
             if token.reading == '*'and '数' != token.part_of_speech.split(',')[1]:
                 continue
-            jukugoList.append(token)            
+            jukugoList.append(token)
 
     return jukugoList#jukugoDict
 

@@ -3,3 +3,5 @@
 
 #誤差を許容する閾値0~1
 ERROR_MARGIN = 0.3
+
+DEBUG = False
