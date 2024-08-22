@@ -18,4 +18,4 @@ if %count% equ 1 (
     echo エラー: ドラッグ＆ドロップで1つのファイルを指定してください。
 )
 
-pause
+if %ERRORLEVEL% neq 0 pause
