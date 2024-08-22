@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-cd %~dp0
+cd /d %~dp0
 
 REM ドラッグ＆ドロップされたファイルの数をカウント
 set /a count=0
@@ -18,4 +18,4 @@ if %count% equ 1 (
     echo エラー: ドラッグ＆ドロップで1つのファイルを指定してください。
 )
 
-pause
+if %ERRORLEVEL% neq 0 pause

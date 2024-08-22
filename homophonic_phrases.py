@@ -115,12 +115,17 @@ def dispYomi(srt_text,token_list, dpReadings):
                     and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
                     and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
                     block,index=find_matching_line(srt_text,index,kanji.surface,dpReadings[yomi])
-                    print(('        '+str(block))[-8:],end='\t')
-                    print(('        '+str(index+1))[-6:] ,end='\t')
-                    if index > -1 and index < len(lines):
-                        print(lines[index])
-                    else:
-                        print('')
+                    for i in range(lines[index].count(kanji.surface)):#同一行内に複数ある場合
+                        print(('        '+str(block))[-8:],end='\t')
+                        print(('        '+str(index+1))[-6:] ,end='\t')
+                        if index > -1 and index < len(lines):#探索エラーでない、かつ、行数の範囲に収まっている
+                            print(lines[index],end='\t')
+                            if i>0:
+                                print('[同一行内]')
+                            else:
+                                print('')
+                        else:
+                            print('')
 
 
 def find_matching_line(text,target_index, query, similar_words):
@@ -129,30 +134,29 @@ def find_matching_line(text,target_index, query, similar_words):
     before_target_index = True
     last_block=0
 
-
-
     for i,line in enumerate(lines):
         if before_target_index:
             if i >  target_index:
                 before_target_index = False
+            else:
+                continue
+        
+        if '-->' in line:
             continue
-        else:
-            if '-->' in line:
-                continue
-            if line.isdigit():
-                if i + 1 < len(lines) and '-->' in lines[i + 1]:
-                    last_block=int(line)
-            if query in line:
-                for kanji in similar_words:
-                    if kanji.surface in query:
-                        continue
-                    if kanji.surface in line and query != kanji.surface:
-                        break
-                else:
-                    return last_block,i
-                
-                continue
-                
+        if line.isdigit():
+            if i + 1 < len(lines) and '-->' in lines[i + 1]:
+                last_block=int(line)
+        if query in line:
+            for kanji in similar_words:
+                if kanji.surface in query:
+                    continue
+                if kanji.surface in line and query != kanji.surface:
+                    break
+            else:
+                return last_block,i
+            
+            continue
+            
 
     
     return -1,-1  # 一致箇所が見つからない場合は -1 を返す
@@ -189,4 +193,6 @@ if __name__ == "__main__":
     print('■{読み}_{品詞}_{品詞細分類}')
     print('┗{字幕ファイル内での用法}')
     print('{字幕ブロック番号}, {行数}, {行の内容}\nのフォーマットで表示しています。')
+    print('Enterを押して終了')
+    input()
 
