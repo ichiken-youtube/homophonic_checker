@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-cd %~dp0
+cd /d %~dp0
 
 REM ドラッグ＆ドロップされたファイルの数をカウント
 set /a count=0
