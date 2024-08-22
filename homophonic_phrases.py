@@ -134,30 +134,29 @@ def find_matching_line(text,target_index, query, similar_words):
     before_target_index = True
     last_block=0
 
-
-
     for i,line in enumerate(lines):
         if before_target_index:
             if i >  target_index:
                 before_target_index = False
+            else:
+                continue
+        
+        if '-->' in line:
             continue
-        else:
-            if '-->' in line:
-                continue
-            if line.isdigit():
-                if i + 1 < len(lines) and '-->' in lines[i + 1]:
-                    last_block=int(line)
-            if query in line:
-                for kanji in similar_words:
-                    if kanji.surface in query:
-                        continue
-                    if kanji.surface in line and query != kanji.surface:
-                        break
-                else:
-                    return last_block,i
-                
-                continue
-                
+        if line.isdigit():
+            if i + 1 < len(lines) and '-->' in lines[i + 1]:
+                last_block=int(line)
+        if query in line:
+            for kanji in similar_words:
+                if kanji.surface in query:
+                    continue
+                if kanji.surface in line and query != kanji.surface:
+                    break
+            else:
+                return last_block,i
+            
+            continue
+            
 
     
     return -1,-1  # 一致箇所が見つからない場合は -1 を返す
