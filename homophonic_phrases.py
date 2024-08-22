@@ -115,10 +115,10 @@ def dispYomi(srt_text,token_list, dpReadings):
                     and kanji.part_of_speech.split(',')[0] == token.part_of_speech.split(',')[0] 
                     and kanji.part_of_speech.split(',')[1] == token.part_of_speech.split(',')[1]):
                     block,index=find_matching_line(srt_text,index,kanji.surface,dpReadings[yomi])
-                    for i in range(lines[index].count(kanji.surface)):
+                    for i in range(lines[index].count(kanji.surface)):#同一行内に複数ある場合
                         print(('        '+str(block))[-8:],end='\t')
                         print(('        '+str(index+1))[-6:] ,end='\t')
-                        if index > -1 and index < len(lines):
+                        if index > -1 and index < len(lines):#探索エラーでない、かつ、行数の範囲に収まっている
                             print(lines[index],end='\t')
                             if i>0:
                                 print('[同一行内]')
